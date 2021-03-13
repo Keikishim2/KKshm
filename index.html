@@ -1,0 +1,280 @@
+<html>
+<head>
+	<title>1942 Game</title>
+
+<style type="text/css">
+	body{
+		background-image: url('bg.gif');
+		background-repeat: no-repeat;
+		background-size: cover;
+	}
+	#container{
+		background-image: url('plane.gif');
+		background-position: 20px -10px;
+	}
+	#hero{
+		background: url('1942.gif');
+		background-position: -85px -180px;
+		width:28px;
+		height:28px;
+		position:absolute;
+		filter: sepia(10) invert(5) saturate(90);
+	}
+	.enemy1{
+		background: url('1942.gif');
+		background-position: -30px -10px;
+		width:28px;
+		height:28px;
+		position:absolute;
+		filter: brightness(10) sepia(5) hue-rotate(90deg) invert(5) saturate(50);
+	}
+	.enemy2{
+		background: url('1942.gif');
+		background-position: -60px -10px;
+		width:28px;
+		height:28px;
+		position:absolute;
+		filter: sepia(5) invert(5) saturate(90);
+	}
+	.bomb1{
+		background: url('1942.gif');
+		background-position: -82px -30px;
+		width:30px;
+		height:30px;
+		position:absolute;
+	}
+	.bullet{
+		background: url('1942.gif');
+		background-position: -185px -400px;
+		width:18px;
+		height:18px;
+		position:absolute;
+		filter: saturate(90);
+	}
+	#score{
+		background-image: url('ban.gif');
+		background-size: contain;
+		background-repeat: no-repeat;
+		width: 300px;
+		height: 500px;
+		position: absolute;
+		left:800px;
+		color: yellow;
+		font-size:70px;
+		font-family: Impact;
+	}
+</style>
+</head>
+<body>
+	<div id='container'>
+		<div id='hero'></div>
+		<div id='enemies'></div>
+		<div id='bullets'></div>
+		<div id='enemy'></div>
+		<div id='bomb'></div>
+	</div>
+	<center><div id='score'>0</div><center>
+
+	<audio id='sound'>
+		<source src='19.wav' type='audio/mpeg'>
+	</audio>
+
+
+<script>
+
+
+	var bomb = [];
+
+	var score = 0;
+
+	var audio = document.getElementById('sound');
+
+    var hero = {
+	    x: 700,
+	    y: 500
+}
+	var enemies = [{x: 50, y:50}, {x: 250, y:50}, {x: 450, y:250}, {x: 550, y:250}, {x: 650, y: 200}, {x: 700, y: 50}, {x: 750, y: 200} ];
+
+
+	var enemy = [{x: 50, y: 50}, {x: 200, y: 50}, {x: 150, y: 200} ];
+
+	var bullets = [];
+
+    function displayHero(){
+	    document.getElementById('hero').style['left'] = hero.x + "px";
+	    document.getElementById('hero').style['top'] = hero.y + "px";
+}
+
+	function displayEnemies(){
+		var output = '';
+		for(var i = 0; i<enemies.length; i++){
+			output += "<div class='enemy1' style='top:"+enemies[i].y+"px; left:"+enemies[i].x+"px;'></div>";
+		}
+		//console.log(output);
+		document.getElementById('enemies').innerHTML = output;	
+	}
+
+	function displayEnemy(){
+		var output = '';
+		for(var i = 0; i<enemy.length; i++){
+			output += "<div class='enemy2' style='top:"+enemy[i].y+"px; left:"+enemy[i].x+"px;'></div>";
+		}
+		//console.log(output);
+		document.getElementById('enemy').innerHTML = output;	
+	}
+
+	function displayScore(){
+		document.getElementById('score').innerHTML = score;
+	}
+
+	function displayBomb(){
+		document.getElementById('bomb').innerHTML = bomb;
+	}
+
+	function moveEnemies(){
+		for(var i=0; i<enemies.length; i++){
+			enemies[i].y += 5;
+
+			if(enemies[i].y>540){
+				enemies[i].y = 0;
+				enemies[i].x = Math.random()*500;
+			}
+		}
+	}
+	function moveEnemy(){
+		for(var i=0; i<enemy.length; i++){
+			enemy[i].y += 5;
+
+			if(enemy[i].y>540){
+				enemy[i].y = 0;
+				enemy[i].x = Math.random()*500;
+			}
+		}
+	}
+
+	function moveBullets(){
+		for(var i=0; i<bullets.length; i++){
+			bullets[i].y -= 5;
+		
+		if(bullets[i].y<0){
+			bullets[i] = bullets[bullets.length-1];
+			bullets.pop();
+		}
+	}
+}
+
+	function displayBullets(){
+		var output = '';
+		for(var i=0; i<bullets.length; i++){
+			output += "<div class='bullet' style='top:"+bullets[i].y+"px; left:"+bullets[i].x+"px;'></div>";
+		}
+		document.getElementById('bullets').innerHTML = output;
+	}
+
+
+	function gameLoop(){
+		displayHero();
+		moveEnemies();
+		displayEnemies();
+		displayEnemy();
+		moveEnemy();
+		moveBullets();
+		displayBullets();
+		detectCollision();
+		detectCollisions();
+		displayScore();
+		displayEnemy();
+		moveEnemy();
+		heroCollision();
+		heroCollisions();
+	}
+
+	function detectCollision(){
+		for(var i=0; i<bullets.length; i++){
+			for(var j=0; j<enemies.length; j++){
+			if( Math.abs(bullets[i].x - enemies[j].x) < 10 && Math.abs(
+				bullets[i].y - enemies[j].y) < 10) {	
+					score += 10;
+					audio.play();
+					bomb.push({x: enemies[j].x+5, y: enemies[j].y-10});
+					displayBomb();
+				}
+			}
+		}
+	}
+	function detectCollisions(){
+		for(var i=0; i<bullets.length; i++){
+			for(var j=0; j<enemy.length; j++){
+			if( Math.abs(bullets[i].x - enemy[j].x) < 10 && Math.abs(
+				bullets[i].y - enemy[j].y) < 10) {
+					score += 10;
+					audio.play();
+					bomb.push({x: enemy[j].x+5, y: enemy[j].y-10});
+					displayBomb();
+
+				}
+			}
+		}
+	}
+	function displayBomb(){
+		var output='';
+		for(var i=0; i<bomb.length; i++){
+			output += "<div class='bomb1' style='top:"+bomb[i].y+"; left:"+bomb[i].x+";'></div>";
+		}
+		document.getElementById('bomb').innerHTML = output;
+		return true;
+	}
+	function heroCollision(){
+		for(var i=0; i<enemies.length; i++){
+			if((hero.x == enemies[i].x) && (hero.y == enemies[i].y)){
+				score -=500;
+				audio.play();
+			}
+		}
+	}
+	function heroCollisions(){
+		for(var j=0; j<enemy.length; j++){
+			if((hero.x == enemy[j].x) && (hero.y == enemy[j].y)){
+				score -=500;
+				audio.play();
+			}
+		}
+	}
+setInterval(function(){
+	if(displayBomb() == true){
+		removeBomb();
+	}
+}, 100)
+
+	function removeBomb(){
+		var output = '';
+		for(var i=0; i<bomb.length; i++){
+			output += "<div class='bomb1' style='top:"+bomb[i].y+"; left:"+bomb[i].x+";'></div>";
+			bomb.pop();
+		}
+		document.getElementById('bomb').innerHTML ="";
+	}
+
+
+setInterval(gameLoop, 55);
+
+	document.onkeydown = function(k) {
+		if(k.keyCode == 37){
+			hero.x -=10;
+		} else if(k.keyCode == 39){
+			hero.x +=10;	
+		} else if(k.keyCode == 38){
+			hero.y -=10;
+		} else if(k.keyCode == 40){
+			hero.y +=10;
+		} else if(k.keyCode == 32){
+			bullets.push({x: hero.x+8 , y: hero.y-10});
+			displayBullets();
+		}
+	displayHero();
+}
+
+</script>
+
+</body>
+</html>
